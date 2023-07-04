@@ -34,7 +34,7 @@ class TinderCard: UIView {
         return imageView
     }()
     
-    var index: Int!
+    public var index: Int!
     
     var overlay: UIView?
     var containerView : UIView!
@@ -163,8 +163,8 @@ class TinderCard: UIView {
      */
     func makeUndoAction() {
         
-        statusImageView.image = makeImage(name: isLiked ? "ic_like" : "overlay_skip")
-        overlayImageView.image = makeImage(name: isLiked ? "overlay_like" : "overlay_skip")
+        //        statusImageView.image = makeImage(name: isLiked ? "ic_like" : "overlay_skip")
+        //        overlayImageView.image = makeImage(name: isLiked ? "overlay_like" : "overlay_skip")
         statusImageView.alpha = 1.0
         overlayImageView.alpha = 1.0
         UIView.animate(withDuration: 0.4, animations: {() -> Void in
@@ -188,36 +188,6 @@ class TinderCard: UIView {
     }
     
     /*
-     * Shake animation method
-     */
-    func shakeAnimationCard(completion: @escaping (Bool) -> ()){
-        
-        statusImageView.image = makeImage(name: "ic_skip")
-        overlayImageView.image = makeImage(name: "overlay_skip")
-        UIView.animate(withDuration: 0.5, animations: {() -> Void in
-            let finishPoint = CGPoint(x: self.center.x - (self.frame.size.width / 2), y: self.center.y)
-            self.animateCard(to: finishPoint, angle: -0.2, alpha: 1.0)
-        }, completion: {(_) -> Void in
-            UIView.animate(withDuration: 0.5, animations: {() -> Void in
-                self.animateCard(to: self.originalPoint)
-            }, completion: {(_ complete: Bool) -> Void in
-                self.statusImageView.image = self.makeImage(name: "ic_like")
-                self.overlayImageView.image =  self.makeImage(name: "overlay_like")
-                UIView.animate(withDuration: 0.5, animations: {() -> Void in
-                    let finishPoint = CGPoint(x: self.center.x + (self.frame.size.width / 2) ,y: self.center.y)
-                    self.animateCard(to: finishPoint , angle: 0.2, alpha: 1)
-                }, completion: {(_ complete: Bool) -> Void in
-                    UIView.animate(withDuration: 0.5, animations: {() -> Void in
-                        self.animateCard(to: self.originalPoint)
-                    }, completion: {(_ complete: Bool) -> Void in
-                        completion(true)
-                    })
-                })
-            })
-        })
-    }
-    
-    /*
      * Setting up initial status for imageviews
      */
     fileprivate func setInitialLayoutStatus(isleft:Bool){
@@ -225,8 +195,6 @@ class TinderCard: UIView {
         statusImageView.alpha = 0.5
         overlayImageView.alpha = 0.5
         
-        statusImageView.image = makeImage(name: isleft ?  "ic_skip" : "ic_like")
-        overlayImageView.image = makeImage(name: isleft ?  "overlay_skip" : "overlay_like")
     }
     
     /*
@@ -268,13 +236,13 @@ extension TinderCard: UIGestureRecognizerDelegate {
         xCenter = gestureRecognizer.translation(in: self).x
         yCenter = gestureRecognizer.translation(in: self).y
         switch gestureRecognizer.state {
-        // Keep swiping
+            // Keep swiping
         case .began:
             originalPoint = self.center;
             addSubview(containerView)
             self.delegate?.didSelectCard(card: self)
             break;
-        //in the middle of a swipe
+            //in the middle of a swipe
         case .changed:
             let rotationStrength = min(xCenter / UIScreen.main.bounds.size.width, 1)
             let rotationAngel = .pi/8 * rotationStrength
@@ -286,7 +254,7 @@ extension TinderCard: UIGestureRecognizerDelegate {
             updateOverlay(xCenter)
             break;
             
-        // swipe ended
+            // swipe ended
         case .ended:
             containerView.removeFromSuperview()
             afterSwipeAction()
@@ -327,8 +295,6 @@ extension TinderCard: UIGestureRecognizerDelegate {
      */
     fileprivate func updateOverlay(_ distance: CGFloat) {
         
-        statusImageView.image = makeImage(name:  distance > 0 ? "ic_like" : "ic_skip")
-        overlayImageView.image = makeImage(name:  distance > 0 ? "overlay_like" : "overlay_skip")
         statusImageView.alpha = min(abs(distance) / 100, 0.8)
         overlayImageView.alpha = min(abs(distance) / 100, 0.8)
         delegate?.currentCardStatus(card: self, distance: distance)

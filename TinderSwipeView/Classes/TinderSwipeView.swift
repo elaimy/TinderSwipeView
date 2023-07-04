@@ -8,7 +8,7 @@
 
 import UIKit
 
-let inset : CGFloat = 10
+var inset : CGFloat = 10
 
 public protocol TinderSwipeViewDelegate: class {
     
@@ -35,6 +35,7 @@ public class TinderSwipeView <Element>: UIView {
     fileprivate var allCards = [Element]()
     fileprivate var loadedCards = [TinderCard]()
     fileprivate var currentCard : TinderCard!
+    
     
     public weak var delegate: TinderSwipeViewDelegate?
     
@@ -103,34 +104,66 @@ public class TinderSwipeView <Element>: UIView {
      */
     fileprivate func createTinderCard(index:Int,element: Element) -> TinderCard {
         
-        let card = TinderCard(frame: CGRect(x: inset, y: inset + (CGFloat(loadedCards.count) * self.sepeatorDistance), width: bounds.width - (inset * 2), height: bounds.height - (CGFloat(bufferSize) * sepeatorDistance) - (inset * 2) ))
+        
+        
+        let card = TinderCard(frame: CGRect(x: inset, y: inset - (CGFloat(loadedCards.count) * self.sepeatorDistance), width: bounds.width - (inset * 2), height: bounds.height - (CGFloat(bufferSize) * sepeatorDistance) - (inset * 2) ))
         card.delegate = self
         card.model = element
         card.addContentView(view: (self.contentView?(index, card.bounds, element)))
         return card
+        
+        
     }
-    
     /*
      * Animating cards
      */
     fileprivate func animateCardAfterSwiping() {
-        
-        if loadedCards.isEmpty{
+        if loadedCards.isEmpty {
             self.delegate?.endOfCardsReached()
             return
         }
         
-        for (i,card) in loadedCards.enumerated() {
-            
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // Define base dimensions from iPhone 14 Pro
+        let baseScreenWidth: CGFloat = 390 //iPhone 14 Pro width
+        let baseScreenHeight: CGFloat = 844 //iPhone 14 Pro height
+        
+        // Calculate the scaling factors
+        let widthRatio: CGFloat = screenWidth/baseScreenWidth
+        let heightRatio: CGFloat = screenHeight/baseScreenHeight
+        
+        // Calculate offsets and sizes based on ratios
+        let yOffset1 = 28 * heightRatio
+        let yOffset2 = 18 * heightRatio
+        let yOffset3 = 12 * heightRatio
+        
+        let xOffset = 0.000111 * screenWidth
+        
+        for (i, card) in loadedCards.enumerated() {
             UIView.animate(withDuration: 0.5, animations: {
                 card.isUserInteractionEnabled = i == 0 ? true : false
                 var frame = card.frame
-                frame.origin.y = inset + (CGFloat(i) * self.sepeatorDistance)
+                
+                if i == 0 {
+                    frame.origin.y = yOffset1
+                    frame.origin.x = xOffset + (10 * widthRatio)
+                    frame.size.width = self.bounds.width - ((xOffset + (10 * widthRatio)) * 2)
+                } else if i == 1 {
+                    frame.origin.y = yOffset2
+                    frame.origin.x = xOffset + (20 * widthRatio)
+                    frame.size.width = self.bounds.width - ((xOffset + (20 * widthRatio)) * 2)
+                } else if i >= 2 {
+                    frame.origin.y = yOffset3
+                    frame.origin.x = xOffset + (28 * widthRatio)
+                    frame.size.width = self.bounds.width - ((xOffset + (28 * widthRatio)) * 2)
+                }
+                
                 card.frame = frame
             })
         }
     }
-    
     /*
      * Loading animation
      */
@@ -139,11 +172,10 @@ public class TinderSwipeView <Element>: UIView {
         guard let dummyCard = loadedCards.first else {
             return
         }
-        dummyCard.shakeAnimationCard(completion: { (_) in
-            self.delegate?.dummyAnimationDone()
-        })
+        //        dummyCard.shakeAnimationCard(completion: { (_) in
+        //            self.delegate?.dummyAnimationDone()
+        //        })
     }
-    
     /*
      * Removing currrent card and add new cards to view
      */
@@ -217,6 +249,8 @@ public class TinderSwipeView <Element>: UIView {
             currentCard = card
         }
     }
+    
+    
 }
 // MARK: TinderCardDelegate Methods
 extension TinderSwipeView : TinderCardDelegate {
